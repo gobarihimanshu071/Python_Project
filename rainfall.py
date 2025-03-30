@@ -23,12 +23,35 @@ def load_and_clean(file_path):
     data["High_Rainfall"]=(data["ANNUAL"]>data["ANNUAL"].quantile(0.75)).astype(int)
     return data   
 
+def plot_yearly_trend(data,area):
+    subset = data[data["SUBDIVISION"]== area]
+    plt.figure(figsize=(10,5))
+    plt.plot(subset["YEAR"], subset["ANNUAL"], color="blue")
+    plt.title("Rainfall over time- {area}")
+    plt.xlabel("Year")
+    plt.ylabel("Rainfall (mm)")
+    plt.grid(True)
+    plt.show()
+
+def plot_monthly_spread(data):
+    months= data[["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]]
+    plt.figure(figsize=(12,6))
+    sns.boxplot(data=months)
+    plt.title("How rainfall varies by mobnth")
+    plt.xlabel("Month")
+    plt.ylabel("Rainfall (mm)")
+    plt.xticks(rotation=45)
+    plt.show()
+
 def main():
     print("Project starting...")
     file_path = r"c:\Users\ASUS\Downloads\Sub_Division_IMD_2017.csv"
     df=load_and_clean(file_path)
     print("Data preview")
     print(df.head())
+
+    plot_yearly_trend(df,"Andaman & Nicobar Islands")
+    plot_monthly_spread(df)
 
 if __name__ == "__main__":
     main()
