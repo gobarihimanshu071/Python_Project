@@ -61,6 +61,17 @@ def train_rain_model(data):
 
     return model, X_test
 
+def plot_what_matters(model, months):
+    importance = model.feature_importances_
+    plt.figure(figsize=(10,6))
+    sns.barplot(x=importance, y=months)
+    plt.title("Which Months Matter Most")
+    plt.xlabel("Importance")
+    plt.ylabel("Month")
+    plt.show()
+
+
+
 def main():
     print("Project starting...")
     file_path = r"c:\Users\ASUS\Downloads\Sub_Division_IMD_2017.csv"
@@ -72,6 +83,9 @@ def main():
     plot_monthly_spread(df)
 
     model, X_test = train_rain_model(df)
+
+    months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+    plot_what_matters(model, months)
 
 if __name__ == "__main__":
     main()
