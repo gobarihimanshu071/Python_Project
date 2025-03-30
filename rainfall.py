@@ -43,6 +43,24 @@ def plot_monthly_spread(data):
     plt.xticks(rotation=45)
     plt.show()
 
+def train_rain_model(data):
+    months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+    X=data[months]
+    y=data["High_Rainfall"]
+
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2 , random_state=42)
+
+    model=RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+
+    y_pred=model.predict(X_test)
+    from sklearn.metrics import accuracy_score
+    score=accuracy_score(y_test,y_pred)
+    print(f"Model score: {score:.2f}")
+
+    return model, X_test
+
 def main():
     print("Project starting...")
     file_path = r"c:\Users\ASUS\Downloads\Sub_Division_IMD_2017.csv"
@@ -52,6 +70,8 @@ def main():
 
     plot_yearly_trend(df,"Andaman & Nicobar Islands")
     plot_monthly_spread(df)
+
+    model, X_test = train_rain_model(df)
 
 if __name__ == "__main__":
     main()
