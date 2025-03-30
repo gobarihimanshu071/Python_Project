@@ -8,16 +8,27 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import sklearn
 
-# Test the imports
-print("Core libraries imported successfully!")
-print("Pandas version:", pd.__version__)
-print("NumPy version:", np.__version__)
-print("Seaborn version:", sns.__version__)
-print("Scikit-learn version:", sklearn.__version__)
+def load_and_clean(file_path):
+    data=pd.read_csv(file_path,na_values=["NA"])
+    print("Data size:", data.shape)
+    print("Columns: ",data.columns.tolist())
 
-# Main function skeleton
+    data.dropna(subset=["ANNUAL"],inplace=True)
+    print("Rows after dropping missing Annual: ", len(data))
+
+    months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+    for  month in months:
+        data[month]=data.groupby("SUBDIVISION")[month].transform(lambda x: x.fillna(x.median()))
+
+    data["High_Rainfall"]=(data["ANNUAL"]>data["ANNUAL"].quantile(0.75)).astype(int)
+    return data   
+
 def main():
     print("Project starting...")
+    file_path = r"c:\Users\ASUS\Downloads\Sub_Division_IMD_2017.csv"
+    df=load_and_clean(file_path)
+    print("Data preview")
+    print(df.head())
 
 if __name__ == "__main__":
     main()
