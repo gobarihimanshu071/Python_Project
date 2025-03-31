@@ -69,8 +69,27 @@ def plot_what_matters(model, months):
     plt.xlabel("Importance")
     plt.ylabel("Month")
     plt.show()
+def plot_correlation_heatmap(data):
+    monthly_data=data[["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]]
+    corr_matrix=monthly_data.corr()
+    plt.figure(figsize=(10,8))
+    sns.heatmap(corr_matrix,annot=True,cmap="coolwarm",fmt=".2f")
+    plt.title("Correlation Heatmap of Monthly Rainfall")
+    plt.show()
 
+def plot_avg_rainfall_heatmap(data):
+    months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+    avg_rainfall = data.groupby("SUBDIVISION")[months].mean()
+    fig,ax=plt.subplots(figsize=(18,14))
+    sns.heatmap(avg_rainfall, cmap="YlGnBu", annot=False,ax=ax)
+    ax.set_title("Average Monthly Rainfall by Subdivision",fontsize=12,pad=20)
+    ax.set_xlabel("Month",fontsize=8,labelpad=10)
+    ax.set_ylabel("Subdivision",fontsize=8,labelpad=10)
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", fontsize=12)
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0, fontsize=12)
 
+    plt.subplots_adjust(left=0.2, right=0.95, top=0.95, bottom=0.25)
+    plt.show()
 
 def main():
     print("Project starting...")
@@ -86,6 +105,9 @@ def main():
 
     months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
     plot_what_matters(model, months)
+
+    plot_correlation_heatmap(df)
+    plot_avg_rainfall_heatmap(df)
 
 if __name__ == "__main__":
     main()
