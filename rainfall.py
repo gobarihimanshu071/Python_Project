@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score,precision_score
+from sklearn.metrics import confusion_matrix
 import sklearn
 
 def load_and_clean(file_path):
@@ -27,7 +28,7 @@ def plot_yearly_trend(data,area):
     subset = data[data["SUBDIVISION"]== area]
     plt.figure(figsize=(10,5))
     plt.plot(subset["YEAR"], subset["ANNUAL"], color="blue")
-    plt.title("Rainfall over time- {area}")
+    plt.title(f"Rainfall over time- {area}")
     plt.xlabel("Year")
     plt.ylabel("Rainfall (mm)")
     plt.grid(True)
@@ -37,7 +38,7 @@ def plot_monthly_spread(data):
     months= data[["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]]
     plt.figure(figsize=(12,6))
     sns.boxplot(data=months)
-    plt.title("How rainfall varies by mobnth")
+    plt.title("How rainfall varies by month")
     plt.xlabel("Month")
     plt.ylabel("Rainfall (mm)")
     plt.xticks(rotation=45)
@@ -55,11 +56,22 @@ def train_rain_model(data):
     model.fit(X_train, y_train)
 
     y_pred=model.predict(X_test)
-    from sklearn.metrics import accuracy_score
-    score=accuracy_score(y_test,y_pred)
-    print(f"Model score: {score:.2f}")
+    accuracy=accuracy_score(y_test,y_pred)
+    precision=precision_score(y_test,y_pred)
+    print(f"Model accuracy: {accuracy:.2f}")
+    print(f"Model precision: {precision:.2f}")
 
-    return model, X_test
+    return model, X_test, y_test
+
+def plot_confusion_matrix(model, X_test, y_test):
+    y_pred= model.predict(X_test)
+    cm=confusion_matrix(y_test, y_pred)
+    plt.figure(figsize=(8,6))
+    sns.heatmap(cm,annot=True,fmt="d",cmap="Blues",xticklabels=["Low","High"],yticklabels=["Low","High"])
+    plt.title("Confusion Matrix")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.show()
 
 def plot_what_matters(model, months):
     importance = model.feature_importances_
@@ -101,7 +113,8 @@ def main():
     plot_yearly_trend(df,"Andaman & Nicobar Islands")
     plot_monthly_spread(df)
 
-    model, X_test = train_rain_model(df)
+    model, X_test ,y_test= train_rain_model(df)
+    plot_confusion_matrix(model,X_test,y_test)
 
     months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
     plot_what_matters(model, months)
