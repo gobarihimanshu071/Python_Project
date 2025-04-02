@@ -82,16 +82,16 @@ def plot_confusion_matrix(rf_model,gb_model, X_test, y_test):
 
     fig, (ax1,ax2)=plt.subplots(1,2,figsize=(12,5))
     sns.heatmap(rf_cm,annot=True,fmt="d",cmap="Blues",xticklabels=["Low","High"],yticklabels=["Low","High"],ax=ax1)
-    plt.title("Random Forest Confusion Matrix")
-    plt.xlabel("Predicted")
-    plt.ylabel("Actual")
+    ax1.set_title("Random Forest Confusion Matrix", fontsize=12, pad=10)
+    ax1.set_xlabel("Predicted", fontsize=10)
+    ax1.set_ylabel("Actual", fontsize=10)
 
     sns.heatmap(gb_cm,annot=True,fmt="d",cmap="Blues",xticklabels=["Low","High"],yticklabels=["Low","High"],ax=ax2)
-    plt.title("Gradient Boosting Confusion Matrix")
-    plt.xlabel("Predicted")
-    plt.ylabel("Actual")
+    ax2.set_title("Gradient Boosting Confusion Matrix", fontsize=12, pad=10)
+    ax2.set_xlabel("Predicted", fontsize=10)
+    ax2.set_ylabel("Actual", fontsize=10)
 
-    plt.tight_layout()
+    plt.tight_layout(pad=3.0)
     plt.show()
 
 def plot_what_matters(rf_model,gb_model, months):
@@ -101,16 +101,18 @@ def plot_what_matters(rf_model,gb_model, months):
     fig,(ax1,ax2)=plt.subplots(1,2,figsize=(14,6))
 
     sns.barplot(x=rf_importance, y=months,ax=ax1)
-    plt.title("Random Forest Feature Importance")
-    plt.xlabel("Importance")
-    plt.ylabel("Month")
+    ax1.set_title("Random Forest Feature Importance", fontsize=12, pad=10)
+    ax1.set_xlabel("Importance", fontsize=10)
+    ax1.set_ylabel("Month", fontsize=10)
+    ax1.tick_params(axis='y',labelsize=8)
 
     sns.barplot(x=gb_importance, y=months,ax=ax2)
-    plt.title("Gradient Boosting Feature Importance")
-    plt.xlabel("Importance")
-    plt.ylabel("Month")
+    ax2.set_title("Gradient Boosting Feature Importance", fontsize=12, pad=10)
+    ax2.set_xlabel("Importance", fontsize=10)
+    ax2.set_ylabel("Month", fontsize=10)
+    ax2.tick_params(axis='y',labelsize=8)
 
-    plt.tight_layout()
+    plt.tight_layout(pad=3.0)
     plt.show()
 def plot_correlation_heatmap(data):
     monthly_data=data[["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]]
