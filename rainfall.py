@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score,precision_score
 from sklearn.metrics import confusion_matrix
@@ -52,34 +52,65 @@ def train_rain_model(data):
     from sklearn.model_selection import train_test_split
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2 , random_state=42)
 
-    model=RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
+    rf_model=RandomForestClassifier(n_estimators=100, random_state=42)
+    rf_model.fit(X_train, y_train)
 
-    y_pred=model.predict(X_test)
-    accuracy=accuracy_score(y_test,y_pred)
-    precision=precision_score(y_test,y_pred)
-    print(f"Model accuracy: {accuracy:.2f}")
-    print(f"Model precision: {precision:.2f}")
+    rf_pred=rf_model.predict(X_test)
+    rf_accuracy=accuracy_score(y_test,rf_pred)
+    rf_precision=precision_score(y_test,rf_pred)
+    print("Random Forest Results")
+    print(f"Accuracy: {rf_accuracy:.2f}")
+    print(f"Precision: {rf_precision:.2f}")
 
-    return model, X_test, y_test
+    gb_model=GradientBoostingClassifier(n_estimators=100,random_state=42)
+    gb_model.fit(X_train,y_train)
+    gb_pred=gb_model.predict(X_test)
+    gb_accuracy=accuracy_score(y_test,gb_pred)
+    gb_precision=precision_score(y_test,gb_pred)
 
-def plot_confusion_matrix(model, X_test, y_test):
-    y_pred= model.predict(X_test)
-    cm=confusion_matrix(y_test, y_pred)
-    plt.figure(figsize=(8,6))
-    sns.heatmap(cm,annot=True,fmt="d",cmap="Blues",xticklabels=["Low","High"],yticklabels=["Low","High"])
-    plt.title("Confusion Matrix")
+    print("Gradient Boosting Results")
+    print(f"Accuracy: {gb_accuracy:.2f}")
+    print(f"Precision: {gb_precision:.2f}")
+
+    return rf_model,gb_model, X_test, y_test
+
+def plot_confusion_matrix(rf_model,gb_model, X_test, y_test):
+    rf_pred= rf_model.predict(X_test)
+    gb_pred= gb_model.predict(X_test)
+    rf_cm=confusion_matrix(y_test, rf_pred)
+    gb_cm=confusion_matrix(y_test, gb_pred)
+
+    fig, (ax1,ax2)=plt.subplots(1,2,figsize=(12,5))
+    sns.heatmap(rf_cm,annot=True,fmt="d",cmap="Blues",xticklabels=["Low","High"],yticklabels=["Low","High"],ax=ax1)
+    plt.title("Random Forest Confusion Matrix")
     plt.xlabel("Predicted")
     plt.ylabel("Actual")
+
+    sns.heatmap(gb_cm,annot=True,fmt="d",cmap="Blues",xticklabels=["Low","High"],yticklabels=["Low","High"],ax=ax2)
+    plt.title("Gradient Boosting Confusion Matrix")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+
+    plt.tight_layout()
     plt.show()
 
-def plot_what_matters(model, months):
-    importance = model.feature_importances_
-    plt.figure(figsize=(10,6))
-    sns.barplot(x=importance, y=months)
-    plt.title("Which Months Matter Most")
+def plot_what_matters(rf_model,gb_model, months):
+    rf_importance = rf_model.feature_importances_
+    gb_importance = gb_model.feature_importances_
+
+    fig,(ax1,ax2)=plt.subplots(1,2,figsize=(14,6))
+
+    sns.barplot(x=rf_importance, y=months,ax=ax1)
+    plt.title("Random Forest Feature Importance")
     plt.xlabel("Importance")
     plt.ylabel("Month")
+
+    sns.barplot(x=gb_importance, y=months,ax=ax2)
+    plt.title("Gradient Boosting Feature Importance")
+    plt.xlabel("Importance")
+    plt.ylabel("Month")
+
+    plt.tight_layout()
     plt.show()
 def plot_correlation_heatmap(data):
     monthly_data=data[["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]]
@@ -113,11 +144,11 @@ def main():
     plot_yearly_trend(df,"Andaman & Nicobar Islands")
     plot_monthly_spread(df)
 
-    model, X_test ,y_test= train_rain_model(df)
-    plot_confusion_matrix(model,X_test,y_test)
+    rf_model,gb_model, X_test ,y_test= train_rain_model(df)
+    plot_confusion_matrix(rf_model,gb_model,X_test,y_test)
 
     months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
-    plot_what_matters(model, months)
+    plot_what_matters(rf_model,gb_model, months)
 
     plot_correlation_heatmap(df)
     plot_avg_rainfall_heatmap(df)
