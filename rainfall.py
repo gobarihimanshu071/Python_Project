@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score,precision_score
 from sklearn.metrics import confusion_matrix
 import sklearn
+from xgboost import XGBClassifier
 
 def load_and_clean(file_path):
     data=pd.read_csv(file_path,na_values=["NA"])
@@ -49,12 +50,10 @@ def train_rain_model(data):
     X=data[months]
     y=data["High_Rainfall"]
 
-    from sklearn.model_selection import train_test_split
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2 , random_state=42)
 
     rf_model=RandomForestClassifier(n_estimators=100, random_state=42)
     rf_model.fit(X_train, y_train)
-
     rf_pred=rf_model.predict(X_test)
     rf_accuracy=accuracy_score(y_test,rf_pred)
     rf_precision=precision_score(y_test,rf_pred)
@@ -72,15 +71,27 @@ def train_rain_model(data):
     print(f"Accuracy: {gb_accuracy:.2f}")
     print(f"Precision: {gb_precision:.2f}")
 
-    return rf_model,gb_model, X_test, y_test
+    xgb_model=XGBClassifier(n_estimators=100,random_state=42,eval_metric='logloss')
+    xgb_model.fit(X_train,y_train)
+    xgb_pred=xgb_model.predict(X_test)
+    xgb_accuracy=accuracy_score(y_test,xgb_pred)
+    xgb_precision = precision_score(y_test,xgb_pred)
+    print("XGBBoost Results:")
+    print(f" Accuracy:{xgb_accuracy:.2f}")
+    print(f" Precision:{xgb_precision:.2f}")
 
-def plot_confusion_matrix(rf_model,gb_model, X_test, y_test):
+    return rf_model,gb_model,xgb_model, X_test, y_test
+
+def plot_confusion_matrix(rf_model,gb_model,xgb_model, X_test, y_test):
     rf_pred= rf_model.predict(X_test)
     gb_pred= gb_model.predict(X_test)
+    xgb_pred=xgb_model.predict(X_test)
+
     rf_cm=confusion_matrix(y_test, rf_pred)
     gb_cm=confusion_matrix(y_test, gb_pred)
+    xgb_cm=confusion_matrix(y_test, xgb_pred)
 
-    fig, (ax1,ax2)=plt.subplots(1,2,figsize=(12,5))
+    fig, (ax1,ax2,ax3)=plt.subplots(1,3,figsize=(18,6))
     sns.heatmap(rf_cm,annot=True,fmt="d",cmap="Blues",xticklabels=["Low","High"],yticklabels=["Low","High"],ax=ax1)
     ax1.set_title("Random Forest Confusion Matrix", fontsize=12, pad=10)
     ax1.set_xlabel("Predicted", fontsize=10)
@@ -91,14 +102,20 @@ def plot_confusion_matrix(rf_model,gb_model, X_test, y_test):
     ax2.set_xlabel("Predicted", fontsize=10)
     ax2.set_ylabel("Actual", fontsize=10)
 
+    sns.heatmap(xgb_cm, annot=True, fmt="d", cmap="Blues", xticklabels=["Low", "High"], yticklabels=["Low", "High"], ax=ax3)
+    ax3.set_title("XGBoost Confusion Matrix", fontsize=12, pad=10)
+    ax3.set_xlabel("Predicted", fontsize=10)
+    ax3.set_ylabel("Actual", fontsize=10)
+
     plt.tight_layout(pad=3.0)
     plt.show()
 
-def plot_what_matters(rf_model,gb_model, months):
+def plot_what_matters(rf_model,gb_model,xgb_model, months):
     rf_importance = rf_model.feature_importances_
     gb_importance = gb_model.feature_importances_
+    xgb_importance = xgb_model.feature_importances_
 
-    fig,(ax1,ax2)=plt.subplots(1,2,figsize=(14,6))
+    fig,(ax1,ax2,ax3)=plt.subplots(1,3,figsize=(20,6))
 
     sns.barplot(x=rf_importance, y=months,ax=ax1)
     ax1.set_title("Random Forest Feature Importance", fontsize=12, pad=10)
@@ -111,6 +128,12 @@ def plot_what_matters(rf_model,gb_model, months):
     ax2.set_xlabel("Importance", fontsize=10)
     ax2.set_ylabel("Month", fontsize=10)
     ax2.tick_params(axis='y',labelsize=8)
+
+    sns.barplot(x=xgb_importance, y=months, ax=ax3)
+    ax3.set_title("XGBoost Feature Importance", fontsize=12, pad=10)
+    ax3.set_xlabel("Importance", fontsize=10)
+    ax3.set_ylabel("Month", fontsize=10)
+    ax3.tick_params(axis='y', labelsize=8)
 
     plt.tight_layout(pad=3.0)
     plt.show()
@@ -146,11 +169,11 @@ def main():
     plot_yearly_trend(df,"Andaman & Nicobar Islands")
     plot_monthly_spread(df)
 
-    rf_model,gb_model, X_test ,y_test= train_rain_model(df)
-    plot_confusion_matrix(rf_model,gb_model,X_test,y_test)
+    rf_model,gb_model,xgb_model, X_test ,y_test= train_rain_model(df)
+    plot_confusion_matrix(rf_model,gb_model,xgb_model,X_test,y_test)
 
     months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
-    plot_what_matters(rf_model,gb_model, months)
+    plot_what_matters(rf_model,gb_model,xgb_model, months)
 
     plot_correlation_heatmap(df)
     plot_avg_rainfall_heatmap(df)
