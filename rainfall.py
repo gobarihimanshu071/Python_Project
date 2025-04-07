@@ -9,6 +9,7 @@ from sklearn.metrics import accuracy_score,precision_score
 from sklearn.metrics import confusion_matrix
 import sklearn
 from xgboost import XGBClassifier
+from mpl_toolkits.mplot3d import Axes3D
 
 def load_and_clean(file_path):
     data=pd.read_csv(file_path,na_values=["NA"])
@@ -159,6 +160,38 @@ def plot_avg_rainfall_heatmap(data):
     plt.subplots_adjust(left=0.2, right=0.95, top=0.95, bottom=0.25)
     plt.show()
 
+def plot_3d_rainfall(data, area):
+    subset = data[data["SUBDIVISION"] == area].copy()
+
+    years= []
+    months=[]
+    rainfall=[]
+
+    month_map = {"JAN": 1, "FEB": 2, "MAR": 3, "APR": 4, "MAY": 5, "JUN": 6, "JUL": 7, "AUG": 8, "SEP": 9, "OCT": 10, "NOV": 11, "DEC": 12}
+
+    for _, row in subset.iterrows():
+        year = row["YEAR"]
+        for month_name, month_num in month_map.items():
+            years.append(year)
+            months.append(month_num)
+            rainfall.append(row[month_name])
+
+    fig = plt.figure(figsize=(10,8))
+    ax = fig.add_subplot(111, projection='3d')
+    scatter = ax.scatter(years, months, rainfall, c=rainfall, cmap='viridis', s=50)
+
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Month")
+    ax.set_zlabel("Rainfall (mm)")
+    ax.set_title(f"3D Rainfall Plot - {area}", fontsize=12, pad=20)
+
+    ax.set_yticks(list(month_map.values()))
+    ax.set_yticklabels(list(month_map.keys()))
+
+    plt.colorbar(scatter, label="Rainfall (mm)")
+
+    plt.show()
+
 def main():
     print("Project starting...")
     file_path = r"c:\Users\ASUS\Downloads\Sub_Division_IMD_2017.csv"
@@ -168,6 +201,7 @@ def main():
 
     plot_yearly_trend(df,"Andaman & Nicobar Islands")
     plot_monthly_spread(df)
+    plot_3d_rainfall(df, "Andaman & Nicobar Islands")
 
     rf_model,gb_model,xgb_model, X_test ,y_test= train_rain_model(df)
     plot_confusion_matrix(rf_model,gb_model,xgb_model,X_test,y_test)
