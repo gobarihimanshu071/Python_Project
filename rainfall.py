@@ -228,7 +228,7 @@ def forecast_annual_rainfall_arima(df, forecast_years=10):
 
 def main():
     print("Project starting...")
-    file_path = r"c:\Users\ASUS\Downloads\Sub_Division_IMD_2017.csv"
+    file_path = "Sub_Division_IMD_2017.csv"
     df=load_and_clean(file_path)
     print("Data preview")
     print(df.head())
