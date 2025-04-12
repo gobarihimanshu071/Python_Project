@@ -9,6 +9,7 @@ from sklearn.metrics import confusion_matrix
 import sklearn
 from xgboost import XGBClassifier
 from mpl_toolkits.mplot3d import Axes3D
+from statsmodels.tsa.arima.model import ARIMA
 
 def load_and_clean(file_path):
     data=pd.read_csv(file_path,na_values=["NA"])
@@ -193,6 +194,38 @@ def plot_3d_rainfall(data, area):
     
     plt.show()
 
+
+def forecast_annual_rainfall_arima(df, forecast_years=10):
+
+    rainfall_series = df.groupby("YEAR")["ANNUAL"].mean()
+    rainfall_series = rainfall_series.sort_index()
+    rainfall_series.index = pd.Index(rainfall_series.index.astype(int))
+
+    model = ARIMA(rainfall_series, order=(2, 1, 2))  
+    model_fit = model.fit()
+
+    forecast = model_fit.forecast(steps=forecast_years)
+
+    last_year = rainfall_series.index[-1]
+
+    future_years = list(range(df["YEAR"].max() + 1, df["YEAR"].max() + forecast_years + 1))
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(rainfall_series.index, rainfall_series.values, label="Historical Rainfall", marker="o")
+    plt.plot(future_years, forecast, label="Forecasted Rainfall", linestyle="dashed", marker="o", color="red")
+    plt.xlabel("Year")
+    plt.ylabel("Annual Rainfall (mm)")
+    plt.title(f"Annual Rainfall Forecast (Next {forecast_years} Years)")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    print("\nForecasted Rainfall:")
+    for year, rain in zip(future_years, forecast):
+        print(f"{year}: {rain:.2f} mm")
+
+
 def main():
     print("Project starting...")
     file_path = r"c:\Users\ASUS\Downloads\Sub_Division_IMD_2017.csv"
@@ -213,5 +246,9 @@ def main():
     plot_correlation_heatmap(df)
     plot_avg_rainfall_heatmap(df)
 
+    forecast_annual_rainfall_arima(df, forecast_years=10)
+
+
 if __name__ == "__main__":
     main()
+
